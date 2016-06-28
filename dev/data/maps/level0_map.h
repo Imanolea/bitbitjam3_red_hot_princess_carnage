@@ -8,7 +8,7 @@
    Section       : 
    Bank          : 0
    Map size      : 32 x 32
-   Tile set      : C:\Users\Imanol Barriuso\Documents\Repositorios\red_hot_princess_carnage\res\tiles\bkg_tileset.gbr
+   Tile set      : D:\Users\Imanol\Documents\GitHub\bitbitjam3_red_hot_princess_carnage\res\tiles\bkg_tileset.gbr
    Plane count   : 1 plane (8 bits)
    Plane order   : Tiles are continues
    Tile offset   : 0

@@ -20,8 +20,45 @@
 #define EMPTYHEARTH_TILE    193U
 #define HALFHEARTH_TILE     194U
 #define FULLHEARTH_TILE     195U
+// Valores del sistema
+#define STD_ORIENTATION     0U
+#define INV_ORIENTATION     S_FLIPX
+// Flags
+#define ANIMATION_CHANGE    1U
 
-UBYTE hero_health;
+// Tablas de datos
+BYTE frame_list[] = {
+    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  255  // 0 - Princesa en guardia
+};
+
+UWORD frame_table[] = {
+    0, // 0 - Princesa en guardia
+};
+
+UBYTE animation_list[] = {
+    0, 254, 255, // 0 - Princesa en guardia
+};
+
+UWORD animation_table[] = {
+    0, // 0 - Princesa en guardia
+};
+
+// Estructuras
+typedef struct {
+    UBYTE null;
+    UBYTE x;
+    UBYTE y;
+    UBYTE frame;
+    UBYTE orientation;
+    UBYTE animation_no;
+    UBYTE animation_f;
+    UBYTE animation_i;
+    UBYTE animation_t;
+} Character;
+
+Character prin;
+UBYTE prin_health;
+UBYTE i_sprite_no;
 UBYTE pre_joypad;
 UBYTE bkg_x;
 UBYTE bkg_y;
@@ -40,8 +77,12 @@ void init_bkg();
 void init_gui();
 void init_interrupts();
 void logic();
+void logic_prin();
 void upd();
 void upd_characters();
+void upd_character(Character *character);
+void upd_character_animation(Character *character);
+void upd_character_sprite(Character *character);
 void upd_bkg();
 void upd_gui();
 void upd_gui_points();
@@ -79,7 +120,16 @@ void init() {
 }
 
 void init_var() {
-    hero_health = 8;
+    prin.x = 85;
+    prin.y = 88;
+    prin.frame = 0;
+    prin.orientation = STD_ORIENTATION;
+    prin.animation_no = 0;
+    prin.animation_f = 0;
+    prin.animation_i = 0;
+    prin.animation_t = 1;
+    prin_health = 8;
+    i_sprite_no = 0;
     pre_joypad = 0;
     bkg_x = 0;
     bkg_y = 0;
@@ -108,7 +158,8 @@ void init_gui() {
 void init_sprite() {
     SWITCH_ROM_MBC1(sprite_tilesetBank);
     set_sprite_data(0, 128, sprite_tileset);
-    SPRITES_8x16;
+    SPRITES_8x8;
+    upd_character_sprite(&prin);
     SHOW_SPRITES;
 }
 
@@ -118,13 +169,78 @@ void init_interrupts() {
 }
 
 void logic() {
+    logic_prin();
     pre_joypad = joypad();
     logic_counter++;
 }
 
+void logic_prin() {
+    UBYTE j_up, j_right, j_down, j_left;
+    UBYTE cur_joypad;
+    cur_joypad = joypad();
+    j_up = cur_joypad & J_UP;
+    j_right = cur_joypad & J_RIGHT;
+    j_down = cur_joypad & J_DOWN;
+    j_left = cur_joypad & J_LEFT;
+    if (j_left) {
+        prin.orientation = INV_ORIENTATION;
+    }
+    if (j_right) {
+        prin.orientation = STD_ORIENTATION;
+    }
+}
+
 void upd() {
+    upd_characters();
     upd_bkg();
     upd_gui();
+}
+
+void upd_characters() {
+    i_sprite_no = 0;
+    upd_character(&prin);
+}
+
+void upd_character(Character *character) {
+    upd_character_animation(character);
+    upd_character_sprite(character);    
+}
+
+void upd_character_animation(Character *character) {
+    UBYTE *animation_info;
+    UBYTE *animation_start;
+    if (character->animation_t-- != 0 && character->animation_f != ANIMATION_CHANGE) {
+        return;
+    }    
+    animation_info = &animation_list;
+    animation_info += animation_table[character->animation_no];
+    animation_start = animation_info;
+    animation_info += character->animation_i;
+    if (*animation_info == 255) {
+        character->animation_i = 0;
+        animation_info = animation_start;
+    }
+    character->frame = *animation_info++;
+    character->animation_t = *animation_info;
+    character->animation_i += 2;
+}
+
+void upd_character_sprite(Character *character) {
+    UBYTE *frame_info;
+    UBYTE f_orientation;
+    frame_info = &frame_list;
+    frame_info += frame_table[character->frame];
+    if (character->orientation == STD_ORIENTATION) {
+        f_orientation = 0;
+    } else {
+        f_orientation = 1;
+    }
+    while (*frame_info != 255) {
+        set_sprite_tile(i_sprite_no, *frame_info++);
+        move_sprite(i_sprite_no, toneg8(*frame_info++, f_orientation) + character->x, *frame_info++ + character->y);
+        set_sprite_prop(i_sprite_no, character->orientation);
+        i_sprite_no++;
+    }
 }
 
 void upd_bkg() {
@@ -152,18 +268,18 @@ void upd_gui_points() {
 }
 
 void upd_gui_hearths() {
-    BYTE hero_health_aux;
+    BYTE prin_health_aux;
     BYTE i;
-    hero_health_aux = hero_health;
+    prin_health_aux = prin_health;
     for(i = 0; i != 4; i++) {
-        if (hero_health_aux > 1) {
+        if (prin_health_aux > 1) {
            gui_hearths_tiles[i] = FULLHEARTH_TILE; 
-        } else if (hero_health_aux != 1) {
+        } else if (prin_health_aux != 1) {
            gui_hearths_tiles[i] = EMPTYHEARTH_TILE;
         } else {
            gui_hearths_tiles[i] = HALFHEARTH_TILE;
         }
-        hero_health_aux -= 2;
+        prin_health_aux -= 2;
     }
 }
 
