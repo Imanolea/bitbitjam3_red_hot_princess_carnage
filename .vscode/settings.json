@@ -1,0 +1,11 @@
+// Coloque su configuración en este archivo para sobrescribir la configuración predeterminada y de usuario.
+{
+    // Controls if selections have rounded corners
+	"editor.roundedSelection": false,
+    
+   	// Controls if quick suggestions should show up or not while typing
+	"editor.quickSuggestions": false,
+    // Controla el número de caracteres tras los cuales el editor salta a la línea siguiente. Si el valor se establece en 0, se activa el ajuste del ancho de la ventanilla (ajuste de línea). Si se establece en -1, hace que el editor no ajuste las líneas nunca.
+    "editor.wrappingColumn": 0
+
+}
