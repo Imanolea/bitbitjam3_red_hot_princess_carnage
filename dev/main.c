@@ -1,5 +1,5 @@
-// Last Crown: The Dark Dynasty
-// Imanolea 2016
+// Red hot princess carnage | BitBitJam 3
+// Light Games 2016
 #include <gb/gb.h>
 #include <gb/hardware.h>
 
