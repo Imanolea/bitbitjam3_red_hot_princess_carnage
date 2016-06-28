@@ -21,26 +21,34 @@
 #define HALFHEARTH_TILE     194U
 #define FULLHEARTH_TILE     195U
 // Valores del sistema
+#define MAX_SP              40U
 #define STD_ORIENTATION     0U
 #define INV_ORIENTATION     S_FLIPX
+// Animaciones
+#define PRIN_IDLE           0U
+#define PRIN_CROUCH         1U
 // Flags
 #define ANIMATION_CHANGE    1U
 
 // Tablas de datos
 BYTE frame_list[] = {
-    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  255  // 0 - Princesa en guardia
+    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  255,  // 0 - Princesa en guardia
+    1,10,0,  2,18,6,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  255, // 34 - Princesa agachada
 };
 
 UWORD frame_table[] = {
     0, // 0 - Princesa en guardia
+    34, // 1 - Princesa agachada
 };
 
 UBYTE animation_list[] = {
     0, 254, 255, // 0 - Princesa en guardia
+    1, 254, 255, // 3 - Princesa agachada
 };
 
 UWORD animation_table[] = {
     0, // 0 - Princesa en guardia
+    3, // 1 - Princesa agachada
 };
 
 // Estructuras
@@ -177,17 +185,31 @@ void logic() {
 void logic_prin() {
     UBYTE j_up, j_right, j_down, j_left;
     UBYTE cur_joypad;
+    UBYTE prin_animation_no;
+    UBYTE prin_animation_f;
     cur_joypad = joypad();
     j_up = cur_joypad & J_UP;
     j_right = cur_joypad & J_RIGHT;
     j_down = cur_joypad & J_DOWN;
     j_left = cur_joypad & J_LEFT;
+    prin_animation_no = prin.animation_no;
+    prin_animation_f = 0;
     if (j_left) {
         prin.orientation = INV_ORIENTATION;
     }
     if (j_right) {
         prin.orientation = STD_ORIENTATION;
     }
+    if (j_down) {
+        prin_animation_no = PRIN_CROUCH;
+    } else {
+        prin_animation_no = PRIN_IDLE;
+    }
+    if (prin_animation_no != prin.animation_no) {
+        prin_animation_f = ANIMATION_CHANGE;
+        prin.animation_no = prin_animation_no;
+    }
+    prin.animation_f = prin_animation_f;
 }
 
 void upd() {
@@ -199,6 +221,10 @@ void upd() {
 void upd_characters() {
     i_sprite_no = 0;
     upd_character(&prin);
+    while (i_sprite_no < MAX_SP - 1) {
+        set_sprite_tile(i_sprite_no++, 0);
+        gui_points = i_sprite_no;
+    }
 }
 
 void upd_character(Character *character) {
