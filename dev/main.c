@@ -37,10 +37,10 @@
 
 // Graficas
 BYTE frame_list[] = {
-    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  255,  // 0 - Princesa en guardia
-    1,10,0,  2,18,6,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  255, // 34 - Princesa agachada
-    1,0,0,  2,8,6,  3,8,-2,  17,16,6,  18,16,-2,  19,24,6,  20,24,-2,  21,32,-2,  255, // 59 - Princesa despegando
-    1,0,0,  22,8,2,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  255 // 84 - Princesa en el aire
+    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  127,  // 0 - Princesa en guardia
+    1,10,0,  2,18,6,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  127, // 34 - Princesa agachada
+    1,0,0,  2,8,6,  3,8,-2,  17,16,6,  18,16,-2,  19,24,6,  20,24,-2,  21,32,-2,  127, // 59 - Princesa despegando
+    1,0,0,  22,8,2,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  127 // 84 - Princesa en el aire
 };
 
 UWORD frame_table[] = {
@@ -319,7 +319,7 @@ void upd_character_sprite(Character *character) {
     } else {
         f_orientation = 1;
     }
-    while (*frame_info != 255) {
+    while (*frame_info != 127) {
         set_sprite_tile(sprite_no_i, *frame_info++);
         move_sprite(sprite_no_i, toneg8(*frame_info++, f_orientation) + character->x, *frame_info++ + character->y);
         set_sprite_prop(sprite_no_i, character->orientation);
