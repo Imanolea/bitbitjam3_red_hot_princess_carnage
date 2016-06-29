@@ -262,6 +262,7 @@ void logic_prin_move() {
     if (mov_y == 127) {
         prin_jump_i = 0;
         prin.animation_no = 0;
+        prin_animation_f = ANIMATION_CHANGE;
         prin.animation_i = 0;
         prin.animation_t = 1;
         prin.state = PRIN_IDLE;
