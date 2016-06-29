@@ -61,3 +61,23 @@ _assign:
     ld  a,  (hli)
     ld  d,  a
     ret
+
+.globl  _comp
+; Comparamos los dos bytes pasados por parámetro y devolvemos un uno si son iguales y un cero si no
+; @entrada:
+;   D - Valor 1
+;   A - Valor 2
+; @salida
+;   DE - Resultado de la comparación
+_comp:
+    lda hl, 2(sp)
+    push    bc
+    ld  a,  (hli)
+    ld  c,  a
+    ld  a,  (hli)
+    ld  de,  #0x0001
+    cp  c
+    pop bc
+    ret z
+    ld  de,  #0x0000
+    ret
