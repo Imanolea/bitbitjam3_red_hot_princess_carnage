@@ -30,7 +30,6 @@
 #define PRIN_JUMP           2U
 // Valores del juego
 #define PRIN_GROUND_Y       88U
-#define PRIN_HIT_DUR        8U
 // Flags
 #define ANIMATION_CHANGE    1U
 
@@ -38,13 +37,10 @@
 
 // Graficas
 BYTE frame_list[] = {
-    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  255,  // 0 - Princesa en guardia
-    1,10,0,  2,18,6,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  255, // 34 - Princesa agachada
-    1,0,0,  2,8,6,  3,8,-2,  17,16,6,  18,16,-2,  19,24,6,  20,24,-2,  21,32,-2,  255, // 59 - Princesa despegando
-    1,0,0,  22,8,2,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  255, // 84 - Princesa en el aire
-    1,0,0,  2,8,16,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  255,  // 115 - Princesa en guardia golpe
-    1,10,0,  2,18,16,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  255, // 149 - Princesa agachada golpe
-    1,0,0,  22,8,16,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  255, // 174 - Princesa en el aire golpe
+    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  127,  // 0 - Princesa en guardia
+    1,10,0,  2,18,6,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  127, // 34 - Princesa agachada
+    1,0,0,  2,8,6,  3,8,-2,  17,16,6,  18,16,-2,  19,24,6,  20,24,-2,  21,32,-2,  127, // 59 - Princesa despegando
+    1,0,0,  22,8,2,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  127 // 84 - Princesa en el aire
 };
 
 UWORD frame_table[] = {
@@ -52,15 +48,12 @@ UWORD frame_table[] = {
     34, // 1 - Princesa agachada
     59, // 2 - Princesa despegando
     84, // 3 - Princesa en el aire
-    115, // 4 - Princesa en guardia golpe
-    149, // 5 - Princesa agachada golpe
-    174, // 6 - Princesa en el aire golpe
 };
 
 UBYTE animation_list[] = {
     0, 254, 255, // 0 - Princesa en guardia
     1, 254, 255, // 3 - Princesa agachada
-    2,   3,   3,  35, 255, // 6 - Princesa saltando
+    2,   3,   3,  35, 255 // 6 - Princesa saltando
 };
 
 UWORD animation_table[] = {
@@ -91,7 +84,6 @@ typedef struct {
 Character prin;
 UBYTE prin_health;
 UBYTE prin_jump_i;
-UBYTE prin_hit_t;
 UBYTE sprite_no_i;
 UBYTE pre_joypad;
 UBYTE bkg_x;
@@ -116,8 +108,6 @@ void logic_prin_control();
 void logic_prin_move();
 void upd();
 void upd_characters();
-void upd_prin();
-void upd_prin_hit();
 void upd_character(Character *character);
 void upd_character_animation(Character *character);
 void upd_character_sprite(Character *character);
@@ -140,8 +130,8 @@ WORD comp(UBYTE value_1, UBYTE value_2);
 void main() {
     init();
     while (1) {
-        upd();
         logic();
+        upd();
         wait_vbl_done();
     }
 }
@@ -170,7 +160,6 @@ void init_var() {
     prin.state = PRIN_IDLE;
     prin_health = 8;
     prin_jump_i = 0;
-    prin_hit_t = 0;
     sprite_no_i = 0;
     pre_joypad = 0;
     bkg_x = 0;
@@ -222,7 +211,6 @@ void logic_prin() {
 
 void logic_prin_control() {
     UBYTE j_up, j_right, j_down, j_left;
-    UBYTE j_a, j_b;
     UBYTE cur_joypad;
     UBYTE prin_animation_no;
     UBYTE prin_animation_f;
@@ -232,8 +220,6 @@ void logic_prin_control() {
     j_right = cur_joypad & J_RIGHT;
     j_down = cur_joypad & J_DOWN;
     j_left = cur_joypad & J_LEFT;
-    j_a = cur_joypad & J_A;
-    j_b = cur_joypad & J_B;
     prin_animation_no = assign(prin.animation_no);
     prin_animation_f = 0;
     prin_state = prin.state;
@@ -256,14 +242,6 @@ void logic_prin_control() {
             prin_state = PRIN_JUMP;
         }
     }
-    if (prin_hit_t == 0) {
-        if (j_a && !(pre_joypad & J_A)) {
-            prin_hit_t = PRIN_HIT_DUR;
-        }
-        if (j_b && !(pre_joypad & J_B)) {
-            prin_hit_t = PRIN_HIT_DUR;
-        }
-    }
     if (!comp(prin.animation_no, prin_animation_no)) {
         prin_animation_f = ANIMATION_CHANGE;
         prin.animation_i = 0;
@@ -284,7 +262,7 @@ void logic_prin_move() {
     if (mov_y == 127) {
         prin_jump_i = 0;
         prin.animation_no = 0;
-        prin.animation_f = ANIMATION_CHANGE;
+        prin_animation_f = ANIMATION_CHANGE;
         prin.animation_i = 0;
         prin.animation_t = 1;
         prin.state = PRIN_IDLE;
@@ -297,42 +275,13 @@ void upd() {
     upd_characters();
     upd_bkg();
     upd_gui();
-    gui_points = prin.animation_no;
 }
 
 void upd_characters() {
     sprite_no_i = 0;
-    upd_prin();
+    upd_character(&prin);
     while (sprite_no_i < MAX_SP - 1) {
         set_sprite_tile(sprite_no_i++, 0);
-    }
-}
-
-void upd_prin() {
-    upd_character_animation(&prin);
-    upd_prin_hit();
-    upd_character_sprite(&prin);    
-}
-
-void upd_prin_hit() {
-    UBYTE *animation_info;
-    if (prin_hit_t == 0) {
-        return;
-    }
-    if (prin.state == PRIN_IDLE) {
-        prin.frame = 4;
-    } else if (prin.state == PRIN_CROUCH) {
-        prin.frame = 5;
-    } else if (prin.state == PRIN_JUMP) {
-        prin.frame = 6;
-    }
-    prin_hit_t--;
-    if (prin_hit_t == 0) {
-        animation_info = &animation_list;
-        animation_info += animation_table[prin.animation_no];
-        animation_info += prin.animation_i - 2;
-        prin.frame = *animation_info;
-        gui_points = prin.frame;
     }
 }
 
@@ -370,7 +319,7 @@ void upd_character_sprite(Character *character) {
     } else {
         f_orientation = 1;
     }
-    while (*frame_info != 255) {
+    while (*frame_info != 127) {
         set_sprite_tile(sprite_no_i, *frame_info++);
         move_sprite(sprite_no_i, toneg8(*frame_info++, f_orientation) + character->x, *frame_info++ + character->y);
         set_sprite_prop(sprite_no_i, character->orientation);
