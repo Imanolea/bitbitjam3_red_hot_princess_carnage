@@ -2,6 +2,7 @@
 // Light Games 2016
 #include <gb/gb.h>
 #include <gb/hardware.h>
+#include <rand.h>
 
 // Ficheros de datos
 // Gráficos
@@ -24,49 +25,67 @@
 #define MAX_SP              40U
 #define STD_ORIENTATION     0U
 #define INV_ORIENTATION     S_FLIPX
-// Animaciones
-#define PRIN_IDLE           0U
-#define PRIN_CROUCH         1U
-#define PRIN_JUMP           2U
+// Estados
+// Princesa
+#define PRIN_IDLE           1U
+#define PRIN_CROUCH         2U
+#define PRIN_JUMP           3U
+// Enemigos
+#define EN_DISABLED         0U
+#define EN_ATTACKING        1U
 // Valores del juego
-#define PRIN_GROUND_Y       88U
+#define GROUND_Y       88U
 #define PRIN_HIT_DUR        8U
+#define NUM_ENEMIES         3U
 // Flags
 #define ANIMATION_CHANGE    1U
+// Constantes
+const UBYTE en_spawn_pos[] = {  0, STD_ORIENTATION, 
+                              160, INV_ORIENTATION };
 
 // Tablas de datos
 
 // Graficas
 BYTE frame_list[] = {
-    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  127,  // 0 - Princesa en guardia
-    1,10,0,  2,18,6,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  127, // 34 - Princesa agachada
-    1,0,0,  2,8,6,  3,8,-2,  17,16,6,  18,16,-2,  19,24,6,  20,24,-2,  21,32,-2,  127, // 59 - Princesa despegando
-    1,0,0,  22,8,2,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  127, // 84 - Princesa en el aire
-    1,0,0,  2,8,16,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  127,  // 115 - Princesa en guardia golpe
-    1,10,0,  2,18,16,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  127, // 149 - Princesa agachada golpe
-    1,0,0,  22,8,16,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  127, // 174 - Princesa en el aire golpe
+    0,0,0,  127, // 0 - Frame nulo
+    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  127,  // 4 - Princesa en guardia
+    1,10,0,  2,18,6,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  127, // 38 - Princesa agachada
+    1,0,0,  2,8,6,  3,8,-2,  17,16,6,  18,16,-2,  19,24,6,  20,24,-2,  21,32,-2,  127, // 63 - Princesa despegando
+    1,0,0,  22,8,2,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  127, // 88 - Princesa en el aire
+    1,0,0,  2,8,16,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  127,  // 119 - Princesa en guardia golpe
+    1,10,0,  2,18,16,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  127, // 153 - Princesa agachada golpe
+    5,0,0,  22,8,16,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  127, // 178 - Princesa en el aire golpe
+    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  127,  // 209 - Enemigo andando 1
+    6,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  127,  // 231 - Enemigo andando 2 
 };
 
 UWORD frame_table[] = {
-    0, // 0 - Princesa en guardia
-    34, // 1 - Princesa agachada
-    59, // 2 - Princesa despegando
-    84, // 3 - Princesa en el aire
-    115, // 4 - Princesa en guardia golpe
-    149, // 5 - Princesa agachada golpe
-    174, // 6 - Princesa en el aire golpe
+    0, // 0 - Frame nulo
+    4, // 1 - Princesa en guardia
+    38, // 2 - Princesa agachada
+    63, // 3 - Princesa despegando
+    88, // 4 - Princesa en el aire
+    119, // 5 - Princesa en guardia golpe
+    153, // 6 - Princesa agachada golpe
+    178, // 7 - Princesa en el aire golpe
+    209, // 8 - Enemigo andando 1
+    231, // 9 - Enemigo andando 2
 };
 
 UBYTE animation_list[] = {
-    0, 254, 255, // 0 - Princesa en guardia
-    1, 254, 255, // 3 - Princesa agachada
-    2,   3,   3,  35, 255, // 6 - Princesa saltando
+    0, 254, 255, // 0 - Animación nula
+    1, 254, 255, // 3 - Princesa en guardia
+    2, 254, 255, // 6 - Princesa agachada
+    3,   3,   4,  35, 255, // 9 - Princesa saltando
+    8,  11,   9,  11, 255, // 14 - Enemigo corriendo
 };
 
 UWORD animation_table[] = {
-    0, // 0 - Princesa en guardia
-    3, // 1 - Princesa agachada
-    6, // 2 - Princesa saltando
+    0, // 0 - Animación nula
+    3, // 1 - Princesa en guardia
+    6, // 2 - Princesa agachada
+    9, // 3 - Princesa saltando
+    14, // 4 - Enemigo corriendo
 };
 
 // Lógica
@@ -89,6 +108,7 @@ typedef struct {
 } Character;
 
 Character prin;
+Character enemies[NUM_ENEMIES];
 UBYTE prin_health;
 UBYTE prin_jump_i;
 UBYTE prin_hit_t;
@@ -111,6 +131,8 @@ void init_bkg();
 void init_gui();
 void init_interrupts();
 void logic();
+void logic_game();
+void logic_enemies();
 void logic_prin();
 void logic_prin_control();
 void logic_prin_move();
@@ -136,6 +158,7 @@ WORD leftshift(WORD value, UBYTE num);
 WORD rightshift(WORD value, UBYTE num);
 WORD assign(UWORD value);
 WORD comp(UBYTE value_1, UBYTE value_2);
+WORD random(UBYTE seed_1, UBYTE seed_2, UBYTE seed_3);
 
 void main() {
     init();
@@ -159,8 +182,9 @@ void init() {
 }
 
 void init_var() {
+    UBYTE i;
     prin.x = 85;
-    prin.y = PRIN_GROUND_Y;
+    prin.y = GROUND_Y;
     prin.frame = 0;
     prin.orientation = STD_ORIENTATION;
     prin.animation_no = 0;
@@ -168,6 +192,17 @@ void init_var() {
     prin.animation_i = 0;
     prin.animation_t = 1;
     prin.state = PRIN_IDLE;
+    for (i = 0; i < NUM_ENEMIES; i++) {
+        enemies[i].x = 0;
+        enemies[i].y = 0;
+        enemies[i].frame = 0;
+        enemies[i].orientation = STD_ORIENTATION;
+        enemies[i].animation_no = 0;
+        enemies[i].animation_f = 0;
+        enemies[i].animation_i = 0;
+        enemies[i].animation_t = 1;
+        enemies[i].state = 0;
+    }
     prin_health = 8;
     prin_jump_i = 0;
     prin_hit_t = 0;
@@ -211,8 +246,51 @@ void init_interrupts() {
 }
 
 void logic() {
+    logic_game();
+    logic_enemies();
     logic_prin();
     logic_counter++;
+}
+
+void logic_game() {
+    UBYTE i;
+    UBYTE *en_spawn_info;
+    if (logic_counter == 128) {
+        for (i = 0; i != NUM_ENEMIES; i++) {
+            if (enemies[i].state == EN_DISABLED) {
+                en_spawn_info = &en_spawn_pos;
+                en_spawn_info += leftshift(random(LY_REG, LY_REG + 1, LY_REG + 2) & 1, 1);
+                enemies[i].x = *en_spawn_info++;
+                enemies[i].y = GROUND_Y;
+                enemies[i].orientation = *en_spawn_info;
+                enemies[i].animation_no = 4;
+                enemies[i].animation_f = ANIMATION_CHANGE;
+                enemies[i].animation_i = 0;
+                enemies[i].animation_t = 1;
+                enemies[i].state = EN_ATTACKING;
+                break;
+            }
+        }
+    }
+}
+
+void logic_enemies() {
+    UBYTE i;
+    for (i = 0; i != NUM_ENEMIES; i++) {
+        if (enemies[i].state == EN_ATTACKING) {
+            if (enemies[i].orientation == STD_ORIENTATION) {
+                enemies[i].x++;
+                if (!(logic_counter & 7)) {
+                    enemies[i].x++;
+                }
+            } else {
+                enemies[i].x--;
+                if (!(logic_counter & 7)) {
+                    enemies[i].x--;
+                }
+            }
+        }
+    }
 }
 
 void logic_prin() {
@@ -246,14 +324,14 @@ void logic_prin_control() {
         }
         if (prin.state != PRIN_JUMP) {
             if (j_down) {
-                prin_animation_no = 1;
+                prin_animation_no = 2;
                 prin_state = PRIN_CROUCH;
             } else {
-                prin_animation_no = 0;
+                prin_animation_no = 1;
                 prin_state = PRIN_IDLE;
             }
             if (j_up && !(pre_joypad & J_UP)) {
-                prin_animation_no = 2;
+                prin_animation_no = 3;
                 prin_state = PRIN_JUMP;
             }
         }
@@ -283,7 +361,7 @@ void logic_prin_move() {
     mov_y = prin_jump_table[prin_jump_i++];
     if (mov_y == 127) {
         prin_jump_i = 0;
-        prin.animation_no = 0;
+        prin.animation_no = 1;
         prin.animation_f = ANIMATION_CHANGE;
         prin.animation_i = 0;
         prin.animation_t = 1;
@@ -297,12 +375,15 @@ void upd() {
     upd_characters();
     upd_bkg();
     upd_gui();
-    gui_points = prin.animation_no;
 }
 
 void upd_characters() {
+    UBYTE i;
     sprite_no_i = 0;
     upd_prin();
+    for (i = 0; i != NUM_ENEMIES; i++) {
+        upd_character(&enemies[i]);
+    }
     while (sprite_no_i < MAX_SP - 1) {
         set_sprite_tile(sprite_no_i++, 0);
     }
@@ -320,11 +401,11 @@ void upd_prin_hit() {
         return;
     }
     if (prin.state == PRIN_IDLE) {
-        prin.frame = 4;
-    } else if (prin.state == PRIN_CROUCH) {
         prin.frame = 5;
-    } else if (prin.state == PRIN_JUMP) {
+    } else if (prin.state == PRIN_CROUCH) {
         prin.frame = 6;
+    } else if (prin.state == PRIN_JUMP) {
+        prin.frame = 7;
     }
     prin_hit_t--;
     if (prin_hit_t == 0) {
@@ -358,6 +439,7 @@ void upd_character_animation(Character *character) {
     character->frame = *animation_info++;
     character->animation_t = *animation_info;
     character->animation_i += 2;
+    character->animation_f = 0;
 }
 
 void upd_character_sprite(Character *character) {

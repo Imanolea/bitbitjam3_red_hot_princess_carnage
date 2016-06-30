@@ -72,3 +72,29 @@ _toneg8:
     inc a
     ld  e,  a
     ret
+    
+.globl  _random
+; Genera un número aleatorio en base a una semilla
+; @entrada:
+;   (3 bytes) - Semilla
+; @salida:
+;   DE - Número aleatorio (0 - 255)
+_random:
+    lda hl, 2(sp)
+    ld  a,  (hli)
+    sra a
+    sra a
+    sra a
+    xor (hl)
+    inc hl
+    rra
+    rl  (hl)
+    dec hl
+    rl  (hl)
+    dec hl
+    rl  (hl)
+    ld  a,  (#0xFF04) ; rDIV
+    add a,  (hl)
+    ld  d,  #0
+    ld  e,  a
+    ret
