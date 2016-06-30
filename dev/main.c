@@ -237,26 +237,26 @@ void logic_prin_control() {
     prin_animation_no = assign(prin.animation_no);
     prin_animation_f = 0;
     prin_state = prin.state;
-    if (j_left) {
-        prin.orientation = INV_ORIENTATION;
-    }
-    if (j_right) {
-        prin.orientation = STD_ORIENTATION;
-    }
-    if (prin.state != PRIN_JUMP) {
-        if (j_down) {
-            prin_animation_no = 1;
-            prin_state = PRIN_CROUCH;
-        } else {
-            prin_animation_no = 0;
-            prin_state = PRIN_IDLE;
-        }
-        if (j_up && !(pre_joypad & J_UP)) {
-            prin_animation_no = 2;
-            prin_state = PRIN_JUMP;
-        }
-    }
     if (prin_hit_t == 0) {
+        if (j_left) {
+            prin.orientation = INV_ORIENTATION;
+        }
+        if (j_right) {
+            prin.orientation = STD_ORIENTATION;
+        }
+        if (prin.state != PRIN_JUMP) {
+            if (j_down) {
+                prin_animation_no = 1;
+                prin_state = PRIN_CROUCH;
+            } else {
+                prin_animation_no = 0;
+                prin_state = PRIN_IDLE;
+            }
+            if (j_up && !(pre_joypad & J_UP)) {
+                prin_animation_no = 2;
+                prin_state = PRIN_JUMP;
+            }
+        }
         if (j_a && !(pre_joypad & J_A)) {
             prin_hit_t = PRIN_HIT_DUR;
         }
