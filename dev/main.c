@@ -34,9 +34,10 @@
 #define EN_DISABLED         0U
 #define EN_ATTACKING        1U
 // Valores del juego
-#define GROUND_Y       88U
+#define GROUND_Y            88U
 #define PRIN_HIT_DUR        8U
 #define NUM_ENEMIES         3U
+#define NUM_PROJECTILES     5U    
 // Flags
 #define ANIMATION_CHANGE    1U
 // Constantes
@@ -47,29 +48,29 @@ const UBYTE en_spawn_pos[] = {  0, STD_ORIENTATION,
 
 // Graficas
 BYTE frame_list[] = {
-    0,0,0,  127, // 0 - Frame nulo
-    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  127,  // 4 - Princesa en guardia
-    1,10,0,  2,18,6,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  127, // 38 - Princesa agachada
-    1,0,0,  2,8,6,  3,8,-2,  17,16,6,  18,16,-2,  19,24,6,  20,24,-2,  21,32,-2,  127, // 63 - Princesa despegando
-    1,0,0,  22,8,2,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  127, // 88 - Princesa en el aire
-    1,0,0,  2,8,16,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  8,24,-11,  9,32,6, 10,32,-2,  11,32,-10,  127,  // 119 - Princesa en guardia golpe
-    1,10,0,  2,18,16,  3,18,-2,  12,26,5,  13,26,-3,  14,32,-11,  15,34,5,  16,34,-3,  127, // 153 - Princesa agachada golpe
-    5,0,0,  22,8,16,  23,8,-6,  24,16,2,  29,16,-6,  25,24,1,  26,24,-7,  27,32,1,  28,32,-7,  30,40,-2,  127, // 178 - Princesa en el aire golpe
-    1,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  127,  // 209 - Enemigo andando 1
-    6,0,0,  2,8,6,  3,8,-2,  4,16,5,  5,16,-3,  6,24,5,  7,24,-3,  127,  // 231 - Enemigo andando 2 
+    0,0,0,  0,0,127, // 0 - Frame nulo
+    0,0,1,  8,6,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3,7,  24,-11,8,  32,6,9,  32,-2,10,  32,-10,11,  0,0,127,  // 6 - Princesa en guardia
+    10,0,1,  18,6,2,  18,-2,3,  26,5,12,  26,-3,13,  32,-11,14,  34,5,15,  34,-3,16,  0,0,127, // 42 - Princesa agachada
+    0,0,1,  8,6,2,  8,-2,3,  16,6,17,  16,-2,18,  24,6,19,  24,-2,20,  32,-2,21,  0,0,127, // 69 - Princesa despegando
+    0,0,1,  8,2,22,  8,-6,23,  16,2,24,  16,-6,29,  24,1,25,  24,-7,26,  32,1,27,  32,-7,28,  40,-2,30,  0,0,127, // 96 - Princesa en el aire
+    0,0,1,  8,16,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3,7,  24,-11,8,  32,6,9,  32,-2,10,  32,-10,11,  0,0,127,  // 129 - Princesa en guardia golpe
+    10,0,1,  18,16,2,  18,-2,3,  26,5,12,  26,-3,13,  32,-11,14,  34,5,15,  34,-3,16,  0,0,127, // 165 - Princesa agachada golpe
+    0,0,5,  8,16,22,  8,-6,23,  16,2,24,  16,-6,29,  24,1,25,  24,-7,26,  32,1,27,  32,-7,28,  40,-2,30,  0,0,127, // 192 - Princesa en el aire golpe
+    0,0,1,  8,6,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3, 7, 0,0,127,  // 225 - Enemigo andando 1
+    0,0,6,  8,6,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3,7,  0,0,127,  // 249 - Enemigo andando 2 
 };
 
 UWORD frame_table[] = {
     0, // 0 - Frame nulo
-    4, // 1 - Princesa en guardia
-    38, // 2 - Princesa agachada
-    63, // 3 - Princesa despegando
-    88, // 4 - Princesa en el aire
-    119, // 5 - Princesa en guardia golpe
-    153, // 6 - Princesa agachada golpe
-    178, // 7 - Princesa en el aire golpe
-    209, // 8 - Enemigo andando 1
-    231, // 9 - Enemigo andando 2
+    6, // 1 - Princesa en guardia
+    42, // 2 - Princesa agachada
+    69, // 3 - Princesa despegando
+    96, // 4 - Princesa en el aire
+    129, // 5 - Princesa en guardia golpe
+    165, // 6 - Princesa agachada golpe
+    192, // 7 - Princesa en el aire golpe
+    225, // 8 - Enemigo andando 1
+    249, // 9 - Enemigo andando 2
 };
 
 UBYTE animation_list[] = {
@@ -107,12 +108,22 @@ typedef struct {
     UBYTE state;
 } Character;
 
+typedef struct {
+    UBYTE null;
+    UBYTE x;
+    UBYTE y;
+    UBYTE tile;
+    UBYTE animation_i;
+    UBYTE animation_t;
+} Projectile;
+
 Character prin;
 Character enemies[NUM_ENEMIES];
+Projectile shurikens[NUM_PROJECTILES];
 UBYTE prin_health;
 UBYTE prin_jump_i;
 UBYTE prin_hit_t;
-UBYTE sprite_no_i;
+UWORD sprite_no_i;
 UBYTE pre_joypad;
 UBYTE bkg_x;
 UBYTE bkg_y;
@@ -143,6 +154,7 @@ void upd_prin_hit();
 void upd_character(Character *character);
 void upd_character_animation(Character *character);
 void upd_character_sprite(Character *character);
+void upd_projectiles();
 void upd_bkg();
 void upd_gui();
 void upd_gui_points();
@@ -159,6 +171,8 @@ WORD rightshift(WORD value, UBYTE num);
 WORD assign(UWORD value);
 WORD comp(UBYTE value_1, UBYTE value_2);
 WORD random(UBYTE seed_1, UBYTE seed_2, UBYTE seed_3);
+WORD set_sprite_a(UBYTE sprite_no_i, UWORD sprite_info, UBYTE y, UBYTE x);
+WORD set_sprite_b(UBYTE sprite_no_i, UWORD sprite_info, UBYTE y, UBYTE x);
 
 void main() {
     init();
@@ -373,6 +387,7 @@ void logic_prin_move() {
 
 void upd() {
     upd_characters();
+    upd_projectiles();
     upd_bkg();
     upd_gui();
 }
@@ -444,20 +459,20 @@ void upd_character_animation(Character *character) {
 
 void upd_character_sprite(Character *character) {
     UBYTE *frame_info;
-    UBYTE f_orientation;
     frame_info = &frame_list;
     frame_info += frame_table[character->frame];
     if (character->orientation == STD_ORIENTATION) {
-        f_orientation = 0;
+        sprite_no_i = set_sprite_a(sprite_no_i, frame_info, character->y, character->x);
     } else {
-        f_orientation = 1;
+        sprite_no_i = set_sprite_b(sprite_no_i, frame_info, character->y, character->x);
     }
-    while (*frame_info != 127) {
-        set_sprite_tile(sprite_no_i, *frame_info++);
-        move_sprite(sprite_no_i, toneg8(*frame_info++, f_orientation) + character->x, *frame_info++ + character->y);
-        set_sprite_prop(sprite_no_i, character->orientation);
-        sprite_no_i++;
-    }
+//    Not fast enough
+//    while (*frame_info != 127) {
+//        set_sprite_tile(sprite_no_i, *frame_info++);
+//        move_sprite(sprite_no_i, toneg8(*frame_info++, f_orientation) + character->x, *frame_info++ + character->y);
+//        set_sprite_prop(sprite_no_i, character->orientation);
+//        sprite_no_i++;
+//    }
 }
 
 void upd_bkg() {
