@@ -16,6 +16,7 @@ _set_sprite_a:
     ld  b,  a
     rl  c
     rl  b
+    xor a
     rl  c
     rl  b
     ld  a,  (hli)
@@ -58,6 +59,12 @@ _set_sprite_a1:
     ld  e,  l
     srl e
     srl e
+;    xor a
+;    rr  d
+;    rr  e
+;    xor a
+;    rr  d
+;    rr  e
     pop bc
     ret
 
@@ -79,6 +86,7 @@ _set_sprite_b:
     ld  b,  a
     rl  c
     rl  b
+    xor a
     rl  c
     rl  b
     ld  a,  (hli)
@@ -123,5 +131,11 @@ _set_sprite_b1:
     ld  e,  l
     srl e
     srl e
+;    xor a
+;    rr  d
+;    rr  e
+;    xor a
+;    rr  d
+;    rr  e
     pop bc
     ret
