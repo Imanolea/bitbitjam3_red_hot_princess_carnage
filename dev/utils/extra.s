@@ -44,7 +44,7 @@ _set_sprite_a0:
     ld  (hli),  a
     ld  a,  (de)
     inc de
-    cp  #127
+    cp  #128
     jr  z,  _set_sprite_a1
     ld  (hli),  a
     xor a
@@ -116,7 +116,7 @@ _set_sprite_b0:
     ld  (hli),  a
     ld  a,  (de)
     inc de
-    cp  #127
+    cp  #128
     jr  z,  _set_sprite_b1
     ld  (hli),  a
     ld  a,  #0x20

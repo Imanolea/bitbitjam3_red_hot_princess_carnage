@@ -25,14 +25,21 @@
 #define MAX_SP              39U
 #define STD_ORIENTATION     0U
 #define INV_ORIENTATION     S_FLIPX
+#define J_ANYKEY            63U
 // Estados
 // Princesa
 #define PRIN_IDLE           1U
 #define PRIN_CROUCH         2U
 #define PRIN_JUMP           3U
+#define PRIN_DYING          4U
+#define PRIN_BESIEGED_PARALIZED_F   1U
+#define PRIN_BESIEGED_RELEASED_F    2U
+#define PRIN_BESIEGED_RECOVERY_TIME 32U
 // Enemigos
 #define EN_DISABLED         0U
-#define EN_ATTACKING        1U
+#define EN_WALKING          1U
+#define EN_ATTACKING        2U
+#define EN_DYING            3U
 // Proyectiles
 #define PROJ_DISABLED       0U
 #define PROJ_ENABLED        1U
@@ -40,44 +47,60 @@
 #define GROUND_Y            88U
 #define PRIN_HIT_DUR        8U
 #define NUM_ENEMIES         3U
-#define NUM_PROJECTILES     5U    
+#define NUM_PROJECTILES     5U 
+#define DAMAGE_FREQ         63U 
+#define ENEMY_MOV_FREQ      7U
+#define PROJ_MOV_FREQ       3U
+#define PRIN_FLICK_TIME     32U
+#define PRIN_FLICK_FREQ     3U
+#define PRIN_LEFT_EN_X      74U
+#define PRIN_RIGHT_EN_X     96U 
+#define PRIN_LEFT_PROJ_X    78U
+#define PRIN_RIGHT_PROJ_X   88U 
+#define PRIN_X              83U
+#define PRIN_RIGHT_HIT_X        120U
+#define PRIN_RIGHT_SHORT_HIT_X  112U
+#define PRIN_LEFT_HIT_X         50U
+#define PRIN_LEFT_SHORT_HIT_X   58U
 // Flags
 #define ANIMATION_CHANGE    1U
 // Constantes
-const UBYTE en_spawn_pos[] = {  0, STD_ORIENTATION, 
-                              160, INV_ORIENTATION };
+const UBYTE en_spawn_pos[] = {0, STD_ORIENTATION, 
+                              176, INV_ORIENTATION };
 const UBYTE proj_spawn_pos[] = {  0,  88, STD_ORIENTATION, 0,
-                                160,  88, INV_ORIENTATION, 0,
+                                168,  88, INV_ORIENTATION, 0,
                                   0, 116, STD_ORIENTATION, 0,
-                                160, 116, INV_ORIENTATION, 0,};
+                                168, 116, INV_ORIENTATION, 0,};
 
 // Tablas de datos
 
 // Graficas
 BYTE frame_list[] = {
-    0,0,0,  0,0,127, // 0 - Frame nulo
-    0,0,1,  8,6,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3,7,  24,-11,8,  32,6,9,  32,-2,10,  32,-10,11,  0,0,127,  // 6 - Princesa en guardia
-    10,0,1,  18,6,2,  18,-2,3,  26,5,12,  26,-3,13,  32,-11,14,  34,5,15,  34,-3,16,  0,0,127, // 42 - Princesa agachada
-    0,0,1,  8,6,2,  8,-2,3,  16,6,17,  16,-2,18,  24,6,19,  24,-2,20,  32,-2,21,  0,0,127, // 69 - Princesa despegando
-    0,0,1,  8,2,22,  8,-6,23,  16,2,24,  16,-6,29,  24,1,25,  24,-7,26,  32,1,27,  32,-7,28,  40,-2,30,  0,0,127, // 96 - Princesa en el aire
-    0,0,1,  8,16,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3,7,  24,-11,8,  32,6,9,  32,-2,10,  32,-10,11,  0,0,127,  // 129 - Princesa en guardia golpe
-    10,0,1,  18,16,2,  18,-2,3,  26,5,12,  26,-3,13,  32,-11,14,  34,5,15,  34,-3,16,  0,0,127, // 165 - Princesa agachada golpe
-    0,0,5,  8,16,22,  8,-6,23,  16,2,24,  16,-6,29,  24,1,25,  24,-7,26,  32,1,27,  32,-7,28,  40,-2,30,  0,0,127, // 192 - Princesa en el aire golpe
-    0,0,1,  8,6,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3, 7, 0,0,127,  // 225 - Enemigo andando 1
-    0,0,6,  8,6,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3,7,  0,0,127,  // 249 - Enemigo andando 2 
+    0,0,0,  0,0,128, // 0 - Frame nulo
+    0,0,1,  8,6,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3,7,  24,-11,8,  32,6,9,  32,-2,10,  32,-10,11,  0,0,128,  // 6 - Princesa en guardia
+    10,0,1,  18,6,2,  18,-2,3,  26,5,12,  26,-3,13,  32,-11,14,  34,5,15,  34,-3,16,  0,0,128, // 42 - Princesa agachada
+    0,0,1,  8,6,2,  8,-2,3,  16,6,17,  16,-2,18,  24,6,19,  24,-2,20,  32,-2,21,  0,0,128, // 69 - Princesa despegando
+    0,0,1,  8,2,22,  8,-6,23,  16,2,24,  16,-6,29,  24,1,25,  24,-7,26,  32,1,27,  32,-7,28,  40,-2,30,  0,0,128, // 96 - Princesa en el aire
+    0,0,1,  8,16,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3,7,  24,-11,8,  32,6,9,  32,-2,10,  32,-10,11,  0,0,128,  // 129 - Princesa en guardia golpe
+    10,0,1,  18,16,2,  18,-2,3,  26,5,12,  26,-3,13,  32,-11,14,  34,5,15,  34,-3,16,  0,0,128, // 165 - Princesa agachada golpe
+    0,0,5,  8,16,22,  8,-6,23,  16,2,24,  16,-6,29,  24,1,25,  24,-7,26,  32,1,27,  32,-7,28,  40,-2,30,  0,0,128, // 192 - Princesa en el aire golpe
+    0,0,1,  8,6,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3, 7, 0,0,128,  // 225 - Enemigo andando 1
+    0,0,6,  8,6,2,  8,-2,3,  16,5,4,  16,-3,5,  24,5,6,  24,-3,7,  0,0,128,  // 249 - Enemigo andando 2 
+    0,0,6,  8,6,6,  8,-2,6,  16,5,6,  16,-3,5,  24,5,6,  24,-3,7,  0,0,128,  // 273 - Enemigo muriendo 
 };
 
 UWORD frame_table[] = {
     0, // 0 - Frame nulo
     6, // 1 - Princesa en guardia
-    42, // 2 - Princesa agachada
-    69, // 3 - Princesa despegando
-    96, // 4 - Princesa en el aire
-    129, // 5 - Princesa en guardia golpe
-    165, // 6 - Princesa agachada golpe
-    192, // 7 - Princesa en el aire golpe
-    225, // 8 - Enemigo andando 1
-    249, // 9 - Enemigo andando 2
+   42, // 2 - Princesa agachada
+   69, // 3 - Princesa despegando
+   96, // 4 - Princesa en el aire
+  129, // 5 - Princesa en guardia golpe
+  165, // 6 - Princesa agachada golpe
+  192, // 7 - Princesa en el aire golpe
+  225, // 8 - Enemigo andando 1
+  249, // 9 - Enemigo andando 2
+  273, // 10 - Enemigo muriendo
 };
 
 UBYTE animation_list[] = {
@@ -86,6 +109,8 @@ UBYTE animation_list[] = {
     2, 254, 255, // 6 - Princesa agachada
     3,   3,   4,  35, 255, // 9 - Princesa saltando
     8,  11,   9,  11, 255, // 14 - Enemigo corriendo
+    8, 254, 255, // 19 - Enemigo parado
+   10, 254, 255, // 22 - Enemigo muriendo
 };
 
 UWORD animation_table[] = {
@@ -93,7 +118,9 @@ UWORD animation_table[] = {
     3, // 1 - Princesa en guardia
     6, // 2 - Princesa agachada
     9, // 3 - Princesa saltando
-    14, // 4 - Enemigo corriendo
+   14, // 4 - Enemigo corriendo
+   19, // 5 - Enemigo parado
+   22, // 6 - Enemigo muriendo
 };
 
 UBYTE proj_animation_list[] = {
@@ -102,7 +129,11 @@ UBYTE proj_animation_list[] = {
 
 // Lógica
 BYTE prin_jump_table[] = {
-    0, -3, -3, -2, -7, -2, -2, -1, -2, -1, -2, -1, -1, -1, -1, -1, 0, -1, 0, -1, 0, 0, 0, 1, 0, 1, 0, 2, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 3, 2, 8, 127
+    0, -3, -3, -2, -7, -2, -2, -1, -2, -1, -2, -1, -1, -1, -1, -1, 0, -1, 0, -1, 0, 0, 0, 1, 0, 1, 0, 2, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 3, 2, 8, 128,
+};
+
+BYTE en_dying_table[] = {
+	-3, -3, -2, -2, -2, -2, -1, -1, -1, -1, -1, -1, -1, -1, 0, -1, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 128,
 };
 
 // Estructuras
@@ -135,7 +166,12 @@ Character enemies[NUM_ENEMIES];
 Projectile shurikens[NUM_PROJECTILES];
 UBYTE prin_health;
 UBYTE prin_jump_i;
+UBYTE prin_besieged_f;
+UBYTE prin_besieged_t;
+UBYTE prin_besieged_c;
+UBYTE prin_flick_t;
 UBYTE prin_hit_t;
+UBYTE enemies_dying_i[NUM_ENEMIES];
 UWORD sprite_no_i;
 UBYTE pre_joypad;
 UBYTE bkg_x;
@@ -154,17 +190,26 @@ void init_sprite();
 void init_bkg();
 void init_gui();
 void init_interrupts();
+void title_screen();
 void logic();
 void logic_game();
 void logic_enemies();
+void logic_enemy_attack(Character *character);
+void logic_projectiles();
+void logic_projectile_collision(Projectile *projectile);
+void prin_damage();
 void logic_prin();
 void logic_prin_control();
+void logic_prin_hit();
 void logic_prin_move();
+void logic_prin_fight();
+void kill_enemy(Character *characer, UBYTE enemy_i);
 void upd();
 void upd_sprites();
 void upd_characters();
 void upd_prin();
 void upd_prin_hit();
+void upd_prin_sprite();
 void upd_character(Character *character);
 void upd_character_animation(Character *character);
 void upd_character_sprite(Character *character);
@@ -190,6 +235,8 @@ WORD set_sprite_b(UBYTE sprite_no_i, UWORD sprite_info, UBYTE y, UBYTE x);
 
 void main() {
     init();
+    title_screen();
+    initrand(LY_REG);
     while (1) {
         logic();
         upd();
@@ -230,6 +277,7 @@ void init_var() {
         enemies[i].animation_i = 0;
         enemies[i].animation_t = i + 1;
         enemies[i].state = EN_DISABLED;
+        enemies_dying_i[i] = 0;
     }
     for (i = 0; i < NUM_PROJECTILES; i++) {
         shurikens[i].x = 0;
@@ -242,9 +290,13 @@ void init_var() {
     }
     prin_health = 8;
     prin_jump_i = 0;
+    prin_besieged_f = 0;
+    prin_besieged_t = 0;
+    prin_besieged_c = 0;
+    prin_flick_t;
     prin_hit_t = 0;
     sprite_no_i = 0;
-    pre_joypad = 0;
+    pre_joypad = joypad();
     bkg_x = 0;
     bkg_y = 0;
     gui_points = 0;
@@ -282,9 +334,23 @@ void init_interrupts() {
     add_VBL(draw_bkg);
 }
 
+void title_screen() {
+    UBYTE j_start;
+    UBYTE cur_joypad;
+    while (1) {
+        cur_joypad = joypad();
+        j_start = cur_joypad & J_START;
+        if (j_start && !(pre_joypad & J_START)) {
+            break;
+        }
+        pre_joypad = cur_joypad;
+    }
+}
+
 void logic() {
     logic_game();
     logic_enemies();
+    logic_projectiles();
     logic_prin();
     logic_counter++;
 }
@@ -297,7 +363,7 @@ void logic_game() {
         for (i = 0; i != NUM_ENEMIES; i++) {
             if (enemies[i].state == EN_DISABLED) {
                 en_spawn_info = &en_spawn_pos;
-                en_spawn_info += leftshift(random(LY_REG, LY_REG + 1, LY_REG + 2) & 1, 1);
+                en_spawn_info += leftshift((rand() & 1), 1);
                 enemies[i].x = *en_spawn_info++;
                 enemies[i].y = GROUND_Y;
                 enemies[i].orientation = *en_spawn_info;
@@ -305,7 +371,7 @@ void logic_game() {
                 enemies[i].animation_f = ANIMATION_CHANGE;
                 enemies[i].animation_i = 0;
                 enemies[i].animation_t = 1;
-                enemies[i].state = EN_ATTACKING;
+                enemies[i].state = EN_WALKING;
                 break;
             }
         }
@@ -314,7 +380,7 @@ void logic_game() {
         for (i = 0; i != NUM_PROJECTILES; i++) {
             if (shurikens[i].state == EN_DISABLED) {
                 proj_spawn_info = &proj_spawn_pos;
-                proj_spawn_info += leftshift(random(LY_REG, LY_REG + 1, LY_REG + 2) & 3, 2);
+                proj_spawn_info += leftshift((rand() & 3), 2);
                 shurikens[i].x = *proj_spawn_info++;
                 shurikens[i].y = *proj_spawn_info++;
                 shurikens[i].orientation = *proj_spawn_info;
@@ -327,26 +393,121 @@ void logic_game() {
 
 void logic_enemies() {
     UBYTE i;
+    UBYTE en_dying_pos;
     for (i = 0; i != NUM_ENEMIES; i++) {
-        if (enemies[i].state == EN_ATTACKING) {
+        if (enemies[i].state == EN_WALKING) {
             if (enemies[i].orientation == STD_ORIENTATION) {
                 enemies[i].x++;
-                if (!(logic_counter & 7)) {
+                if (!(logic_counter & ENEMY_MOV_FREQ)) {
                     enemies[i].x++;
+                }
+                if (enemies[i].x > PRIN_LEFT_EN_X) {
+                    enemies[i].x = PRIN_LEFT_EN_X;
+                    logic_enemy_attack(&enemies[i]);
                 }
             } else {
                 enemies[i].x--;
-                if (!(logic_counter & 7)) {
+                if (!(logic_counter & ENEMY_MOV_FREQ)) {
                     enemies[i].x--;
                 }
+                if (enemies[i].x < PRIN_RIGHT_EN_X) {
+                    enemies[i].x = PRIN_RIGHT_EN_X;
+                    logic_enemy_attack(&enemies[i]);
+                }
+            }
+        }
+        if (enemies[i].state == EN_DYING) {
+            en_dying_pos = en_dying_table[enemies_dying_i[i]];
+            if (en_dying_pos == 128) {
+                enemies[i].state = EN_DISABLED;
+                return;
+            }
+            enemies[i].y += en_dying_pos;
+            if (enemies[i].orientation == STD_ORIENTATION) {
+                enemies[i].x--;
+            } else {
+                enemies[i].x++;
+            }
+            enemies_dying_i[i]++;
+        }
+    }
+}
+
+void logic_enemy_attack(Character *character) {
+    character->animation_no = 5;
+    character->animation_f = ANIMATION_CHANGE;
+    character->animation_i = 0;
+    character->animation_t = 1;
+    character->state = EN_ATTACKING;
+    if (!prin_besieged_f) {
+        if (prin.state != PRIN_JUMP) {
+            prin.animation_no = 1;
+            prin.animation_f = ANIMATION_CHANGE;
+            prin.animation_i = 0;
+            prin.animation_t = 1;
+        }
+        prin_besieged_f = 1;
+        prin_besieged_c = logic_counter & DAMAGE_FREQ;
+    }
+}
+
+void logic_projectiles() {
+UBYTE i;
+    for (i = 0; i < NUM_PROJECTILES; i++) {
+        if (shurikens[i].animation_t-- == 0) {
+            shurikens[i].animation_t = 4;
+            shurikens[i].tile = proj_animation_list[shurikens[i].animation_i];
+            shurikens[i].animation_i = (shurikens[i].animation_i + 1) & 1;
+        }
+        if (shurikens[i].state == PROJ_ENABLED) {
+            if (shurikens[i].orientation == STD_ORIENTATION) {
+                shurikens[i].x += 2;
+                if (!(logic_counter & PROJ_MOV_FREQ)) {
+                    shurikens[i].x--;
+                }
+            } else {
+                shurikens[i].x -= 2;
+                if (!(logic_counter & PROJ_MOV_FREQ)) {
+                    shurikens[i].x++;
+                }
+            }
+            if (shurikens[i].x > PRIN_LEFT_PROJ_X && shurikens[i].x < PRIN_RIGHT_PROJ_X) {
+                    logic_projectile_collision(&shurikens[i]);
+            }
+            if (shurikens[i].x > 168) {
+                shurikens[i].state = PROJ_DISABLED;
             }
         }
     }
 }
 
+void logic_projectile_collision(Projectile *projectile) {
+    if (projectile->y == 88) {
+        if (prin.state == PRIN_CROUCH) {
+            return;
+        }
+    } else {
+        if (prin.state == PRIN_JUMP) {
+            return;
+        }
+    }
+    prin_damage();
+    projectile->state = PROJ_DISABLED;
+    projectile->x = 168;
+}
+
+void prin_damage() {
+    if (prin_flick_t) {
+        return;
+    }
+    prin_health--;
+    prin_flick_t = PRIN_FLICK_TIME;
+}
+
 void logic_prin() {
     logic_prin_control();
     logic_prin_move();
+    logic_prin_fight();
 }
 
 void logic_prin_control() {
@@ -356,6 +517,9 @@ void logic_prin_control() {
     UBYTE prin_animation_no;
     UBYTE prin_animation_f;
     UBYTE prin_state;
+    if (prin_besieged_f) {
+        return;
+    }
     cur_joypad = joypad();
     j_up = cur_joypad & J_UP;
     j_right = cur_joypad & J_RIGHT;
@@ -387,7 +551,7 @@ void logic_prin_control() {
             }
         }
         if (j_b && !(pre_joypad & J_B)) {
-            prin_hit_t = PRIN_HIT_DUR;
+            logic_prin_hit();
         }
     }
     if (!comp(prin.animation_no, prin_animation_no)) {
@@ -398,7 +562,36 @@ void logic_prin_control() {
     prin.animation_no = prin_animation_no;
     prin.animation_f = prin_animation_f;
     prin.state = prin_state;
-    pre_joypad = cur_joypad;
+}
+
+void logic_prin_hit() {
+    UBYTE i;
+    prin_hit_t = PRIN_HIT_DUR;
+    for (i = 0; i < NUM_ENEMIES; i++) {
+        if (enemies[i].state == EN_WALKING) {
+            if (prin.orientation == STD_ORIENTATION) {
+                if (prin.state == PRIN_IDLE) {
+                    if (enemies[i].x > PRIN_X && enemies[i].x < PRIN_RIGHT_HIT_X) {
+                        kill_enemy(&enemies[i], i);
+                    }
+                } else  {
+                    if (enemies[i].x > PRIN_X && enemies[i].x < PRIN_RIGHT_SHORT_HIT_X) {
+                        kill_enemy(&enemies[i], i);
+                    }
+                }
+            } else {
+                if (prin.state == PRIN_IDLE) {
+                    if (enemies[i].x < PRIN_X && enemies[i].x > PRIN_LEFT_HIT_X) {
+                        kill_enemy(&enemies[i], i);
+                    }
+                } else  {
+                    if (enemies[i].x < PRIN_X && enemies[i].x > PRIN_LEFT_SHORT_HIT_X) {
+                        kill_enemy(&enemies[i], i);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void logic_prin_move() {
@@ -407,7 +600,7 @@ void logic_prin_move() {
         return;
     }
     mov_y = prin_jump_table[prin_jump_i++];
-    if (mov_y == 127) {
+    if (mov_y == 128) {
         prin_jump_i = 0;
         prin.animation_no = 1;
         prin.animation_f = ANIMATION_CHANGE;
@@ -417,6 +610,45 @@ void logic_prin_move() {
         return;
     }
     prin.y += mov_y;
+}
+
+void logic_prin_fight() {
+    UBYTE i;
+    if (prin_besieged_f) {
+        if (comp((logic_counter & DAMAGE_FREQ), prin_besieged_c)) {
+            prin_damage();
+        }
+        if (prin_besieged_t) {
+            prin_besieged_t--;
+            if (!prin_besieged_t) {
+                prin_besieged_f = PRIN_BESIEGED_RELEASED_F;
+            }
+            return;
+        }
+        if (joypad() & J_ANYKEY) {
+            if (prin_besieged_f == PRIN_BESIEGED_PARALIZED_F) {
+                prin_besieged_t = PRIN_BESIEGED_RECOVERY_TIME;
+                prin.orientation = prin.orientation ^ INV_ORIENTATION;
+            } else {
+                for (i = 0; i != NUM_ENEMIES; i++) {
+                    if (enemies[i].state == EN_ATTACKING) {
+                        kill_enemy(&enemies[i], i);
+                    }
+                }
+                prin_besieged_f = 0;
+            }
+        }
+    }
+}
+
+void kill_enemy(Character *character, UBYTE enemy_i) {
+    character->state = EN_DYING;
+    character->animation_no = 6;
+    character->animation_f = ANIMATION_CHANGE;
+    character->animation_i = 0;
+    character->animation_t = 1;
+    enemies_dying_i[enemy_i] = 0;
+    gui_points++;
 }
 
 void upd() {
@@ -446,7 +678,7 @@ void upd_characters() {
 void upd_prin() {
     upd_character_animation(&prin);
     upd_prin_hit();
-    upd_character_sprite(&prin);    
+    upd_prin_sprite();
 }
 
 void upd_prin_hit() {
@@ -468,6 +700,19 @@ void upd_prin_hit() {
         animation_info += prin.animation_i - 2;
         prin.frame = *animation_info;
     }
+}
+
+void upd_prin_sprite() {
+    UBYTE prin_frame;
+    prin_frame = prin.frame;
+    if (prin_flick_t) {
+        prin_flick_t--;
+        if (!(prin_flick_t & PRIN_FLICK_FREQ)) {
+            prin.frame = 0;
+        }
+    }
+    upd_character_sprite(&prin);
+    prin.frame = prin_frame;
 }
 
 void upd_character(Character *character) {
@@ -505,7 +750,7 @@ void upd_character_sprite(Character *character) {
         sprite_no_i = set_sprite_b(sprite_no_i, frame_info, character->y, character->x);
     }
 //    Not fast enough
-//    while (*frame_info != 127) {
+//    while (*frame_info != 128) {
 //        set_sprite_tile(sprite_no_i, *frame_info++);
 //        move_sprite(sprite_no_i, toneg8(*frame_info++, f_orientation) + character->x, *frame_info++ + character->y);
 //        set_sprite_prop(sprite_no_i, character->orientation);
@@ -516,18 +761,6 @@ void upd_character_sprite(Character *character) {
 void upd_projectiles() {
     UBYTE i;
     for (i = 0; i < NUM_PROJECTILES; i++) {
-        if (shurikens[i].animation_t-- == 0) {
-            shurikens[i].animation_t = 4;
-            shurikens[i].tile = proj_animation_list[shurikens[i].animation_i];
-            shurikens[i].animation_i = (shurikens[i].animation_i + 1) & 1;
-        }
-        if (shurikens[i].state == PROJ_ENABLED) {
-            if (shurikens[i].orientation == STD_ORIENTATION) {
-                shurikens[i].x += 2;
-            } else {
-                shurikens[i].x -= 2;
-            }
-        }
         set_sprite_tile(sprite_no_i, shurikens[i].tile);
         move_sprite(sprite_no_i, shurikens[i].x, shurikens[i].y);
         set_sprite_prop(sprite_no_i, shurikens[i].orientation);
