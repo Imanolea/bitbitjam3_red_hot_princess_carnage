@@ -1,4 +1,4 @@
-// Red hot princess carnage | BitBitJam 3
+// Akaru-Hime. Ninjas' Profecy (Red hot princess carnage) | BitBitJam 3
 // Light Games 2016
 #include <gb/gb.h>
 #include <gb/hardware.h>
@@ -16,6 +16,10 @@
 #include "data/maps/story_map.h"
 #include "data/maps/level0_map.h"
 #include "data/maps/gui_map.h"
+// Musica
+//#include "_SFX.h" Fichero donde se incluyen los FX
+#include "data/music/gbt_player.h"
+//extern const unsigned char * song_Data[];
 
 // GUI
 #define GUI_POINTS_X     16U
@@ -199,6 +203,10 @@ UBYTE logic_counter;
 UBYTE gui_points_tiles[3];
 UBYTE gui_hearths_tiles[5];
 
+
+UBYTE sfx_on = 0;
+UBYTE twoNotes = 0;
+
 // Declaración de funciones
 void game();
 void init_title();
@@ -212,6 +220,7 @@ void init_game_gui();
 void init_game_interrupts();
 void title_screen();
 void story();
+void init_music();
 void logic();
 void logic_game();
 void logic_enemies();
@@ -242,6 +251,26 @@ void draw_bkg();
 void draw_gui();
 void draw_highscore();
 
+
+//Funciones para los FX
+typedef enum{
+	SWORD_SOUND, 	// Sword Sound
+	KILL_SOUND,		// Matar enemigo Sound
+	PUNCH_SOUND, 	// Golpe Princesa Sound
+	GAMEOVER_SOUND,	// Game Over Sound
+	START_SOUND, 	// Start Sound
+	JUMP_SOUND		// Jump Sound
+} fx;
+void initFX();
+UBYTE twoNotesSound(UBYTE sfx_two_notes_on);
+void playSound(fx fxsound);
+void playSword();
+void playEnemyKilled();
+void playPunch();
+void playGameOver();
+void playStart();
+void playJump();
+
 // Ensamblador
 WORD div8(UBYTE numerator, UBYTE denominator);
 WORD mul8(UBYTE factor_1, UBYTE factor_2);
@@ -270,6 +299,7 @@ void game() {
             logic();
             upd();
             wait_vbl_done();
+            gbt_update();
         }
     }
 }
@@ -278,6 +308,8 @@ void init_title() {
     disable_interrupts();
     DISPLAY_OFF;
     HIDE_SPRITES;
+    initFX();
+    //init_music();
     gui_points = high_score;
     upd_gui_points();
     draw_highscore();
@@ -376,6 +408,12 @@ void init_game_bkg() {
     set_bkg_tiles(0, 0, 32, 32, level0_map);
     move_bkg(bkg_x, bkg_y);
     SHOW_BKG;
+}
+
+void init_music() {
+	//gbt_play(song_Data, 2, 7);
+	//gbt_loop(0);
+	//set_interrupts(VBL_IFLAG);
 }
 
 void init_game_gui() {
@@ -695,6 +733,9 @@ void logic_prin_control() {
     prin.animation_f = prin_animation_f;
     prin.state = prin_state;
     pre_joypad = cur_joypad;
+	if(!j_up && !j_down && !j_right && !j_left && sfx_on == 1){
+		sfx_on = 0;
+	}
 }
 
 void logic_prin_hit() {
@@ -954,4 +995,139 @@ void draw_highscore() {
 
 void draw_bkg() {
     move_bkg(bkg_x, bkg_y);
+}
+
+// FX functions
+
+void initFX(){
+	NR52_REG = 0xF8U;
+	NR51_REG = 0x00U;
+	NR50_REG = 0x77U;
+}
+
+
+void playSound(fx fxsound){
+	if(!sfx_on){
+		sfx_on = 1;
+		switch(fxsound){
+			case SWORD_SOUND: 	// Sword Sound
+								playSword();
+								break;
+			case KILL_SOUND:	// Matar enemigo Sound
+								playEnemyKilled();
+								break;
+			case PUNCH_SOUND: 	// Golpe Princesa Sound
+								playPunch();
+								break;
+			case GAMEOVER_SOUND:// Game Over Sound
+								playGameOver();
+								break;
+			case START_SOUND: 	// Start Sound
+								playStart();
+								break;
+			case JUMP_SOUND: 	playJump();
+								break;
+			default: break;	
+		}	
+	}
+}
+
+
+// Sword Sound
+void playSword(){
+	NR10_REG = 0x34U;
+	NR11_REG = 0x70U;
+	NR12_REG = 0xF0U;
+	//Freq = 1546
+	NR13_REG = 0x0AU;
+	NR14_REG = 0xC6U;
+	NR51_REG |= 0x11;
+}
+
+// Matar enemigo Sound
+void playEnemyKilled(){
+	NR10_REG = 0x34U;
+	NR11_REG = 0x70U;
+	NR12_REG = 0xF0U;
+	// Freq = 2000
+	NR13_REG = 0xD7U;
+	NR14_REG = 0xC0U;
+	NR51_REG |= 0x11;
+}
+
+// Golpe Princesa Sound
+void playPunch(){
+	NR10_REG = 0x34U;
+	NR11_REG = 0x70U;
+	NR12_REG = 0xF0U;
+	// Freq = 500
+	NR13_REG = 0x74U;
+	NR14_REG = 0xC1U;
+	NR51_REG |= 0x11;
+}
+
+// Game Over Sound
+void playGameOver(){
+	NR10_REG = 0x34U;
+	NR11_REG = 0x70U;
+	NR12_REG = 0xF0U;
+	// Freq = 500
+	NR13_REG = 0x74U;
+	NR14_REG = 0xC1U;
+	NR51_REG |= 0x11;
+}
+
+// Start Sound
+void playStart(){
+	NR10_REG = 0x34U;
+	NR11_REG = 0x70U;
+	NR12_REG = 0xF0U;
+	// Freq = 500
+	NR13_REG = 0x74U;
+	NR14_REG = 0xC1U;
+	NR51_REG |= 0x11;
+}
+
+// Jump Sound
+void playJump(){
+	// NR10_REG = 0x34U;
+	// NR11_REG = 0x70U;
+	// NR12_REG = 0xF0U;
+	// Freq = 1546
+	// NR13_REG = 0x0AU;
+	// NR14_REG = 0xC6U;
+	// NR51_REG |= 0x11;
+	
+	
+	NR10_REG = 0x34U;
+	NR11_REG = 0x70U;
+	NR12_REG = 0xF0U;
+	// Freq = 500
+	NR13_REG = 0x74U;
+	NR14_REG = 0xC1U;
+	NR51_REG |= 0x11;
+}
+
+
+
+UBYTE twoNotesSound(UBYTE sfx_two_notes_on){
+	if(NR52_REG & 0x02){
+		return 0x01;
+	}else if(sfx_two_notes_on){
+		//Segunda nota
+		NR21_REG = 0x80U;
+		NR22_REG = 0x73U;
+		NR23_REG = 0x9FU;
+		NR24_REG = 0xC7U;
+		NR51_REG |= 0x22;
+		return 0x00;
+	}else{
+		// Primera nota
+		NR21_REG = 0xAEU;
+		NR22_REG = 0x68U;
+		NR23_REG = 0xDBU;
+		NR24_REG = 0xC7U;
+		NR51_REG |= 0x22;
+		return 0x01;
+	}
 }
