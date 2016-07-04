@@ -54,19 +54,19 @@
 #define PRIN_FLICK_TIME     32U
 #define PRIN_FLICK_FREQ     3U
 #define PRIN_LEFT_EN_X      74U
-#define PRIN_RIGHT_EN_X     96U 
+#define PRIN_RIGHT_EN_X     94U 
 #define PRIN_LEFT_PROJ_X    78U
-#define PRIN_RIGHT_PROJ_X   88U 
-#define PRIN_X              83U
+#define PRIN_RIGHT_PROJ_X   90U 
+#define PRIN_X              84U
 #define PRIN_RIGHT_HIT_X        120U
 #define PRIN_RIGHT_SHORT_HIT_X  112U
-#define PRIN_LEFT_HIT_X         50U
-#define PRIN_LEFT_SHORT_HIT_X   58U
+#define PRIN_LEFT_HIT_X         48U
+#define PRIN_LEFT_SHORT_HIT_X   56U
 // Flags
 #define ANIMATION_CHANGE    1U
 // Constantes
 const UBYTE en_spawn_pos[] = {0, STD_ORIENTATION, 
-                              176, INV_ORIENTATION };
+                              168, INV_ORIENTATION };
 const UBYTE proj_spawn_pos[] = {  0,  96, STD_ORIENTATION, 0,
                                 168,  96, INV_ORIENTATION, 0,
                                   0, 125, STD_ORIENTATION, 0,
@@ -266,7 +266,7 @@ void init() {
 
 void init_var() {
     UBYTE i;
-    prin.x = 85;
+    prin.x = 84;
     prin.y = GROUND_Y;
     prin.frame = 0;
     prin.orientation = STD_ORIENTATION;
@@ -411,7 +411,7 @@ void logic_game() {
         if (logic_proj_counter_c > 55) {
             logic_proj_counter_c -= 8;
         }
-        if (logic_enemy_counter_c > 7) {
+        if (logic_enemy_counter_c > 31) {
             logic_enemy_counter_c -= 8;
         }
     }
@@ -662,7 +662,7 @@ void logic_prin_fight() {
             }
             return;
         }
-        if ((cur_joypad & J_ANYKEY) && !pre_joypad) {
+        if ((cur_joypad & J_ANYKEY) && (cur_joypad != pre_joypad)) {
             if (prin_besieged_f == PRIN_BESIEGED_PARALIZED_F) {
                 prin_besieged_t = PRIN_BESIEGED_RECOVERY_TIME;
                 prin.orientation = prin.orientation ^ INV_ORIENTATION;
@@ -675,6 +675,8 @@ void logic_prin_fight() {
                 prin_besieged_f = 0;
                 prin_left_besieged_f = 0;
                 prin_right_besieged_f = 0;
+                pre_joypad = 0;
+                return;
             }
         }
         pre_joypad = cur_joypad;
