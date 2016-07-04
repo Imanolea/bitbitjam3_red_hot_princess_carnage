@@ -6,15 +6,21 @@
 
 // Ficheros de datos
 // Gráficos
+#include "data/graphics/title_tileset.h"
+#include "data/graphics/story_tileset.h"
 #include "data/graphics/sprite_tileset.h"
 #include "data/graphics/sprite_bkg_tileset.h"
 #include "data/graphics/bkg_tileset.h"
 // Mapas
+#include "data/maps/title_map.h"
+#include "data/maps/story_map.h"
 #include "data/maps/level0_map.h"
 #include "data/maps/gui_map.h"
 
 // GUI
 #define GUI_POINTS_X     16U
+#define HIGHSCORE_X      4U
+#define HIGHSCORE_Y      4U
 #define GUI_HEARTHS_X    1U
 // Tiles
 #define DIGIT0_TILE         196U
@@ -166,6 +172,8 @@ typedef struct {
 Character prin;
 Character enemies[NUM_ENEMIES];
 Projectile shurikens[NUM_PROJECTILES];
+UBYTE game_f;
+UBYTE high_score;
 UBYTE prin_health;
 UBYTE prin_jump_i;
 UBYTE prin_left_besieged_f;
@@ -192,13 +200,18 @@ UBYTE gui_points_tiles[3];
 UBYTE gui_hearths_tiles[5];
 
 // Declaración de funciones
-void init();
-void init_var();
-void init_sprite();
-void init_bkg();
-void init_gui();
-void init_interrupts();
+void game();
+void init_title();
+void init_story();
+void init_game();
+void init_game_var();
+void init_game_sprite();
+void init_title_bkg();
+void init_game_bkg();
+void init_game_gui();
+void init_game_interrupts();
 void title_screen();
+void story();
 void logic();
 void logic_game();
 void logic_enemies();
@@ -222,12 +235,12 @@ void upd_character(Character *character);
 void upd_character_animation(Character *character);
 void upd_character_sprite(Character *character);
 void upd_projectiles();
-void upd_bkg();
 void upd_gui();
 void upd_gui_points();
 void upd_gui_hearths();
 void draw_bkg();
 void draw_gui();
+void draw_highscore();
 
 // Ensamblador
 WORD div8(UBYTE numerator, UBYTE denominator);
@@ -242,30 +255,52 @@ WORD set_sprite_a(UBYTE sprite_no_i, UWORD sprite_info, UBYTE y, UBYTE x);
 WORD set_sprite_b(UBYTE sprite_no_i, UWORD sprite_info, UBYTE y, UBYTE x);
 
 void main() {
-    init();
-    title_screen();
-    initrand(LY_REG);
+    high_score = 0;
+    init_game_interrupts();
+    game();
+}
+
+void game() {
     while (1) {
-        logic();
-        upd();
-        wait_vbl_done();
+        title_screen();
+        initrand(LY_REG);
+        story();
+        init_game();
+        while (game_f) {
+            logic();
+            upd();
+            wait_vbl_done();
+        }
     }
 }
 
-void init() { 
+void init_title() { 
     disable_interrupts();
     DISPLAY_OFF;
-    init_var();
-    init_sprite();
-    init_bkg();
-    init_gui();
-    init_interrupts();
+    HIDE_SPRITES;
+    gui_points = high_score;
+    upd_gui_points();
+    draw_highscore();
+    move_win(7, 142);
+    init_title_bkg();
     DISPLAY_ON;
     enable_interrupts();
 }
 
-void init_var() {
+void init_game() {
+    disable_interrupts();
+    DISPLAY_OFF;
+    init_game_var();
+    init_game_sprite();
+    init_game_bkg();
+    init_game_gui();
+    DISPLAY_ON;
+    enable_interrupts();
+}
+
+void init_game_var() {
     UBYTE i;
+    game_f = 1;
     prin.x = 84;
     prin.y = GROUND_Y;
     prin.frame = 0;
@@ -303,7 +338,7 @@ void init_var() {
     prin_besieged_f = 0;
     prin_besieged_t = 0;
     prin_besieged_c = 0;
-    prin_flick_t;
+    prin_flick_t = 0;
     prin_hit_t = 0;
     sprite_no_i = 0;
     pre_joypad = joypad();
@@ -316,7 +351,25 @@ void init_var() {
     logic_proj_counter = rand();
 }
 
-void init_bkg() {
+void init_title_bkg() {
+    SWITCH_ROM_MBC1(title_tilesetBank);
+    set_bkg_data(0, 256, title_tileset);
+    SWITCH_ROM_MBC1(level0_mapBank);
+    set_bkg_tiles(0, 0, 20, 18, title_map);
+    move_bkg(0, 0);
+    SHOW_BKG;
+}
+
+void init_story_bkg() {
+    SWITCH_ROM_MBC1(story_tilesetBank);
+    set_bkg_data(0, 256, story_tileset);
+    SWITCH_ROM_MBC1(story_mapBank);
+    set_bkg_tiles(0, 0, 32, 32, story_map);
+    move_bkg(0, 0);
+    SHOW_BKG;
+}
+
+void init_game_bkg() {
     SWITCH_ROM_MBC1(bkg_tilesetBank);
     set_bkg_data(0, 128, bkg_tileset);
     SWITCH_ROM_MBC1(level0_mapBank);
@@ -325,7 +378,7 @@ void init_bkg() {
     SHOW_BKG;
 }
 
-void init_gui() {
+void init_game_gui() {
     SWITCH_ROM_MBC1(sprite_bkg_tilesetBank);
     set_win_data(128, 256, sprite_bkg_tileset);
     SWITCH_ROM_MBC1(gui_mapBank);
@@ -335,7 +388,7 @@ void init_gui() {
     SHOW_WIN;
 }
 
-void init_sprite() {
+void init_game_sprite() {
     SWITCH_ROM_MBC1(sprite_tilesetBank);
     set_sprite_data(0, 128, sprite_tileset);
     SPRITES_8x8;
@@ -343,14 +396,19 @@ void init_sprite() {
     SHOW_SPRITES;
 }
 
-void init_interrupts() {
+void init_game_interrupts() {
+    disable_interrupts();
+    DISPLAY_OFF;
     add_VBL(draw_gui);
     add_VBL(draw_bkg);
+    DISPLAY_ON;
+    enable_interrupts();
 }
 
 void title_screen() {
     UBYTE j_start;
     UBYTE cur_joypad;
+    init_title();
     while (1) {
         cur_joypad = joypad();
         j_start = cur_joypad & J_START;
@@ -358,7 +416,43 @@ void title_screen() {
             break;
         }
         pre_joypad = cur_joypad;
+        wait_vbl_done();
     }
+}
+
+void story() {
+    UBYTE j_start;
+    UBYTE cur_joypad;
+    UBYTE scroll_t;
+    UBYTE bkg_y;
+    init_story();
+    scroll_t = 0;
+    bkg_y = 248;
+    while (1) {
+        cur_joypad = joypad();
+        j_start = cur_joypad & J_START;
+        if (j_start && !(pre_joypad & J_START)) {
+            break;
+        }
+        pre_joypad = cur_joypad;
+        if ((scroll_t & 7) == 0) {
+            if (bkg_y != 128) {
+                bkg_y++;
+            }
+        }
+        wait_vbl_done();
+        move_bkg(0, bkg_y);
+        scroll_t++;
+    }
+}
+
+void init_story() {
+    disable_interrupts();
+    DISPLAY_OFF;
+    HIDE_SPRITES;
+    init_story_bkg();
+    DISPLAY_ON;
+    enable_interrupts();  
 }
 
 void logic() {
@@ -536,6 +630,10 @@ void prin_damage() {
     }
     prin_health--;
     prin_flick_t = PRIN_FLICK_TIME;
+    if (!prin_health) {
+        high_score = gui_points;
+        game_f = 0;
+    }
 }
 
 void logic_prin() {
@@ -695,7 +793,6 @@ void kill_enemy(Character *character, UBYTE enemy_i) {
 
 void upd() {
     upd_sprites();
-    upd_bkg();
     upd_gui();
 }
 
@@ -810,10 +907,6 @@ void upd_projectiles() {
     }
 }
 
-void upd_bkg() {
-
-}
-
 void upd_gui() {
     upd_gui_points();
     upd_gui_hearths();
@@ -853,6 +946,10 @@ void upd_gui_hearths() {
 void draw_gui() {
     set_win_tiles(GUI_POINTS_X, 0, 3, 1, gui_points_tiles);
     set_win_tiles(GUI_HEARTHS_X, 0, 5, 1, gui_hearths_tiles); 
+}
+
+void draw_highscore() {
+    set_bkg_tiles(HIGHSCORE_X, HIGHSCORE_Y, 3, 1, gui_points_tiles);
 }
 
 void draw_bkg() {
