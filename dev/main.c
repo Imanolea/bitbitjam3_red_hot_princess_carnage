@@ -24,7 +24,7 @@
 // GUI
 #define GUI_POINTS_X     16U
 #define HIGHSCORE_X      15U
-#define HIGHSCORE_Y      13U
+#define HIGHSCORE_Y      14U
 #define GUI_HEARTHS_X    1U
 // Tiles
 #define DIGIT0_TILE         196U
@@ -246,11 +246,11 @@ void upd_character_sprite(Character *character);
 void upd_projectiles();
 void upd_gui();
 void upd_gui_points();
-void upd_highscore();
+void upd_score();
 void upd_gui_hearths();
 void draw_bkg();
 void draw_gui();
-void draw_highscore();
+void draw_score(UBYTE x, UBYTE y);
 
 
 //Funciones para los FX
@@ -300,7 +300,7 @@ void game() {
             logic();
             upd();
             wait_vbl_done();
-            gbt_update();
+            //gbt_update();
         }
     }
 }
@@ -311,11 +311,17 @@ void init_title() {
     HIDE_SPRITES;
     initFX();
     //init_music();
-    high_score = gui_points;
-    upd_highscore();
     move_win(7, 144);
     init_title_bkg();
-    draw_highscore();
+    upd_score();
+    draw_score(HIGHSCORE_X, HIGHSCORE_Y - 2);
+    if (high_score < gui_points) {
+        high_score = assign(gui_points);
+    }
+    gui_points = assign(high_score);
+    upd_score();
+    draw_score(HIGHSCORE_X, HIGHSCORE_Y);
+    //draw_highscore(HIGHSCORE_X, HIGHSCORE_Y);
     DISPLAY_ON;
     enable_interrupts();
 }
@@ -673,7 +679,6 @@ void prin_damage() {
     prin_flick_t = PRIN_FLICK_TIME;
     if (!prin_health) {
         playGameOver();
-        high_score = gui_points;
         game_f = 0;
         return;
     }
@@ -976,7 +981,7 @@ void upd_gui_points() {
     }
 }
 
-void upd_highscore() {
+void upd_score() {
     UWORD div_out;
     UBYTE div_res, div_rem;
     UBYTE gui_points_aux;
@@ -1012,8 +1017,8 @@ void draw_gui() {
     set_win_tiles(GUI_HEARTHS_X, 0, 5, 1, gui_hearths_tiles); 
 }
 
-void draw_highscore() {
-    set_bkg_tiles(HIGHSCORE_X, HIGHSCORE_Y, 3, 1, gui_points_tiles);
+void draw_score(UBYTE x, UBYTE y) {
+    set_bkg_tiles(x, y, 3, 1, gui_points_tiles);
 }
 
 void draw_bkg() {
@@ -1021,13 +1026,11 @@ void draw_bkg() {
 }
 
 // FX functions
-
 void initFX(){
 	NR52_REG = 0xF8U;
 	NR51_REG = 0x00U;
 	NR50_REG = 0x77U;
 }
-
 
 void playSound(fx fxsound){
 	if(!sfx_on){
@@ -1054,7 +1057,6 @@ void playSound(fx fxsound){
 		}	
 	}
 }
-
 
 // Sword Sound
 void playSword(){
@@ -1130,8 +1132,6 @@ void playJump(){
 	NR14_REG = 0xC1U;
 	NR51_REG |= 0x11;
 }
-
-
 
 UBYTE twoNotesSound(UBYTE sfx_two_notes_on){
 	if(NR52_REG & 0x02){
