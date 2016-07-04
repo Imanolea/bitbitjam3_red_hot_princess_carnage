@@ -23,8 +23,8 @@
 
 // GUI
 #define GUI_POINTS_X     16U
-#define HIGHSCORE_X      4U
-#define HIGHSCORE_Y      4U
+#define HIGHSCORE_X      15U
+#define HIGHSCORE_Y      13U
 #define GUI_HEARTHS_X    1U
 // Tiles
 #define DIGIT0_TILE         196U
@@ -246,6 +246,7 @@ void upd_character_sprite(Character *character);
 void upd_projectiles();
 void upd_gui();
 void upd_gui_points();
+void upd_highscore();
 void upd_gui_hearths();
 void draw_bkg();
 void draw_gui();
@@ -310,11 +311,11 @@ void init_title() {
     HIDE_SPRITES;
     initFX();
     //init_music();
-    gui_points = high_score;
-    upd_gui_points();
-    draw_highscore();
-    move_win(7, 142);
+    high_score = gui_points;
+    upd_highscore();
+    move_win(7, 144);
     init_title_bkg();
+    draw_highscore();
     DISPLAY_ON;
     enable_interrupts();
 }
@@ -456,6 +457,7 @@ void title_screen() {
         pre_joypad = cur_joypad;
         wait_vbl_done();
     }
+    playStart();
 }
 
 void story() {
@@ -482,6 +484,7 @@ void story() {
         move_bkg(0, bkg_y);
         scroll_t++;
     }
+    playStart();
 }
 
 void init_story() {
@@ -669,9 +672,12 @@ void prin_damage() {
     prin_health--;
     prin_flick_t = PRIN_FLICK_TIME;
     if (!prin_health) {
+        playGameOver();
         high_score = gui_points;
         game_f = 0;
+        return;
     }
+    playPunch();
 }
 
 void logic_prin() {
@@ -722,6 +728,7 @@ void logic_prin_control() {
         }
         if (j_b && !(pre_joypad & J_B)) {
             logic_prin_hit();
+            playSword();
         }
     }
     if (!comp(prin.animation_no, prin_animation_no)) {
@@ -830,6 +837,7 @@ void kill_enemy(Character *character, UBYTE enemy_i) {
     character->animation_t = 1;
     enemies_dying_i[enemy_i] = 0;
     gui_points++;
+    playEnemyKilled();
 }
 
 void upd() {
@@ -964,6 +972,21 @@ void upd_gui_points() {
         div_res = div_out;
         div_rem = div_out >> 8;
         gui_points_tiles[i] = DIGIT0_TILE + div_rem;
+        gui_points_aux = div_res;
+    }
+}
+
+void upd_highscore() {
+    UWORD div_out;
+    UBYTE div_res, div_rem;
+    UBYTE gui_points_aux;
+    BYTE i;
+    gui_points_aux = gui_points;
+    for(i = 2; i != -1; i--) {
+        div_out = div8(gui_points_aux, 10);
+        div_res = div_out;
+        div_rem = div_out >> 8;
+        gui_points_tiles[i] = 160 + div_rem;
         gui_points_aux = div_res;
     }
 }

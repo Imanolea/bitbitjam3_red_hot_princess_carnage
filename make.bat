@@ -16,6 +16,6 @@ lcc -Wf-bo2 -c dev/data/maps/gui_map.c -o gui_map.o
 REM logic
 lcc -c dev/main.c -o main.o
 REM build
-lcc -Wl-yt1 -Wl-yo4 -Wl-ya0 main.o gbt_player.o gbt_player_bank1.o title_tileset.o story_tileset.o sprite_tileset.o sprite_bkg_tileset.o bkg_tileset.o title_map.o story_map.o level0_map.o gui_map.o dev/utils/math.s dev/utils/fixes.s dev/utils/extra.s -o rom/red_hot_princess_carnage.gb
+lcc -Wl-yt1 -Wl-yo4 -Wl-ya0 main.o gbt_player.o gbt_player_bank1.o title_tileset.o story_tileset.o sprite_tileset.o sprite_bkg_tileset.o bkg_tileset.o title_map.o story_map.o level0_map.o gui_map.o dev/utils/math.s dev/utils/fixes.s dev/utils/extra.s -o rom/akaruhime.gb
 REM clean
 del *.o *.lst
